@@ -21,68 +21,22 @@
             border: 2px solid #ccc;
             border-radius: 8px;
         }
-        #message {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: #000;
-            color: #fff;
-            padding: 5px;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
-    <div id="message">Scanning...</div>
-    <div id="scanner"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <video id="scanner" width="100%" height="100%"></video>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing/0.18.7/zxing.min.js"></script>
     <script>
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Your browser does not support the required media features.");
-            return;
-        }
+        const codeReader = new ZXing.BrowserBarcodeReader();
+        const videoElement = document.getElementById('scanner');
 
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector('#scanner'),
-                constraints: {
-                    facingMode: "environment"
-                }
-            },
-            decoder: {
-                readers: [
-                    "code_128_reader",
-                    "ean_reader",
-                    "ean_8_reader",
-                    "code_39_reader",
-                    "code_39_vin_reader",
-                    "upc_reader",
-                    "upc_e_reader"
-                ],
-                multiple: false
+        codeReader.decodeFromVideoDevice(null, videoElement, (result, error) => {
+            if (result) {
+                alert("Сканиран код: " + result.text);
+                codeReader.reset();  // Спира скенера след сканиране
             }
-        }, function (err) {
-            if (err) {
-                console.log(err);
-                alert("Initialization failed. Check console for errors.");
-                return;
-            }
-            console.log("Initialization finished. Ready to start");
-            Quagga.start();
-        });
-
-        Quagga.onDetected(function (result) {
-            var code = result.codeResult.code;
-            document.getElementById('message').innerText = "Scanned code: " + code;
-            Quagga.stop();
-            // Тук можеш да добавиш логика за изпращане на данните към AppSheet или друг сървър
-        });
-
-        Quagga.onProcessed(function (result) {
-            if (result && result.codeResult) {
-                console.log("Processed result: ", result.codeResult.code);
+            if (error) {
+                console.error(error);
             }
         });
     </script>

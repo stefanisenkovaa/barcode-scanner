@@ -21,9 +21,19 @@
             border: 2px solid #ccc;
             border-radius: 8px;
         }
+        #message {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #000;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
+    <div id="message">Scanning...</div>
     <div id="scanner"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script>
@@ -38,11 +48,20 @@
                 type: "LiveStream",
                 target: document.querySelector('#scanner'),
                 constraints: {
-                    facingMode: "environment" // Опция за използване на задната камера
+                    facingMode: "environment"
                 }
             },
             decoder: {
-                readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "code_39_vin_reader", "upc_reader", "upc_e_reader"]
+                readers: [
+                    "code_128_reader",
+                    "ean_reader",
+                    "ean_8_reader",
+                    "code_39_reader",
+                    "code_39_vin_reader",
+                    "upc_reader",
+                    "upc_e_reader"
+                ],
+                multiple: false
             }
         }, function (err) {
             if (err) {
@@ -56,9 +75,15 @@
 
         Quagga.onDetected(function (result) {
             var code = result.codeResult.code;
-            alert("Scanned code: " + code);
+            document.getElementById('message').innerText = "Scanned code: " + code;
             Quagga.stop();
             // Тук можеш да добавиш логика за изпращане на данните към AppSheet или друг сървър
+        });
+
+        Quagga.onProcessed(function (result) {
+            if (result && result.codeResult) {
+                console.log("Processed result: ", result.codeResult.code);
+            }
         });
     </script>
 </body>
